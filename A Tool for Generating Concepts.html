@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Architectural Ideas Generator</title>
+    <style>
+        /* Styles from the clipboard design */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: #f5f5f5;
+        }
+        .clipboard {
+        flex-direction: column; /* Stack elements vertically */
+        align-items: center; /* Center elements horizontally */
+            width: 816px;
+            height: 1065px;
+            background: #fff;
+            border: solid 3px #000;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            box-shadow: 15px 15px 30px rgba(0,0,0,0.1);
+            padding-top: 60px;
+            margin-bottom: 60px;
+        }
+        .test-paper {
+            width: calc(98% - 120px); /* Adjusted for padding */
+            height: calc(100% - 120px); /* Adjusted for padding */
+            background: #fff;
+            border: solid 3px #ccc;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding: 60px;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.05);
+            align-self: center;
+        }
+        .test-paper h2 {
+            margin-top: 0;
+            margin-bottom: 48px;
+            font-size: 50px;
+            text-align: center;
+        }
+        .line {
+            height: 5px;
+            background: #e0e0e0;
+            margin-bottom: 1px;
+        }
+      
+      
+        /* Additional styles for the idea generator */
+        #generateButton, #ideaOutput {
+            margin: 10px 0;
+            text-align: center;
+        }
+        #ideaImage {
+        width: 90%; /* Adjust this value as needed */
+        max-width: 816px; /* Maximum width to match paper width */
+        height: auto;
+        object-fit: cover;
+        display: none; /* Initially hidden */
+        margin-top: 20px; /* Space above the image */
+        align-self: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="clipboard">
+        <div class="test-paper">
+        <h2>Architectural Design Topic</h2>
+        <div class="line long"></div>
+        <button id="generateButton">Choose Your Topic</button>
+        <p id="ideaOutput"></p>
+        <img id="ideaImage" src="" style="display: none;" alt="Generated Idea Image" />
+        <div class="line long"></div>
+        <!-- Additional lines or content can be added here -->
+    </div>
+    
+
+
+    <script>
+        // Sample data for demonstration
+        let streetNames = [];
+        const architectureStyles = [  "expressionist architecture", "usonia style architecture", "constructivism", "rationalism", 
+        "functionalism", "totalitarianism", "brutalism", "structuralism", "regionalism", "metabolism", "postmodernism", 
+        "new rationalism", "deconstruction", "beyond rationalism"];
+        const buildingTypes = ["house", "apartment", "condominium", "townhouse", "villa", "bungalow", 
+        "chalet", "cottage", "duplex", "skyscraper", "office building", "retail store", 
+        "shopping mall", "hotel", "school", "university", "library", "museum", 
+        "theater", "concert hall", "cultural center", "church", "mosque", "temple", 
+        "synagogue", "factory", "warehouse", "power plant", "refinery", "airport", 
+        "train station", "bus station", "port", "marina", "courthouse", "city hall", 
+        "embassy", "military base", "stadium", "park", "garden", "community center", 
+        "gym", "resort", "motel", "restaurant", "castle", "palace", "monument", 
+        "heritage site", "green building", "eco-house", "disaster relief shelter", 
+        "mobile hospital", "refugee camp facility", "concept house", "futuristic building", 
+        "modular structure", "prefabricated structure", "clinic", "medical laboratory", 
+        "care home", "loft", "penthouse", "manor", "farmhouse", "cabin", "lodge", 
+        "barrack", "hovel"];
+
+
+        // Overpass API URL
+        const overpassUrl = "http://overpass-api.de/api/interpreter";
+
+        // Overpass query
+        const overpassQuery = `
+            [out:json];
+            way
+                [highway]
+                [name]
+                (33.6478, -84.5518, 33.8876, -84.2893);
+            out body;
+        `;
+
+        // Fetch street names from Overpass API
+        function fetchStreetNames() {
+            fetch(overpassUrl, {
+                method: 'POST',
+                body: new URLSearchParams({'data': overpassQuery}),
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                streetNames = data.elements
+                    .filter(element => element.tags && element.tags.name)
+                    .map(element => element.tags.name);
+                generateIdea(); // Generate initial idea after fetching street names
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        // Function to generate a random architectural idea
+        function generateIdea() {
+    if (streetNames.length === 0) {
+        document.getElementById("ideaOutput").textContent = "Loading street names...";
+        return;
+    }
+    const randomStreet = streetNames[Math.floor(Math.random() * streetNames.length)];
+    const randomStyle = architectureStyles[Math.floor(Math.random() * architectureStyles.length)];
+    const randomBuildingType = buildingTypes[Math.floor(Math.random() * buildingTypes.length)];
+
+    const idea = `Design Challenge:<br> Design a ${randomBuildingType} on ${randomStreet}, which encapsulates the essence of ${randomStyle} style.<br>Focus on blending innovative design with functional space, making it a new landmark for the city.`;
+
+    document.getElementById("ideaOutput").innerHTML = idea;
+
+    // Update image source and display it
+    const ideaImageUrl = "ATL map.jpg"; // Replace with your image URL
+    const ideaImageElem = document.getElementById("ideaImage");
+    ideaImageElem.src = ideaImageUrl;
+    ideaImageElem.style.display = 'block';
+}
+
+
+
+
+        // Event listener for the "Generate Idea" button
+        document.getElementById("generateButton").addEventListener("click", generateIdea);
+
+        // Fetch street names on page load
+        fetchStreetNames();
+    </script>
+</body>
+</html>
